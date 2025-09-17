@@ -82,7 +82,13 @@ int main() {
     return 0;
 }
 
+
+```
+#### Refactored Version Using Stratergy Pattern 
+```
 Refactored Version
+
+
 #include <iostream>
 #include <memory>
 #include <unordered_map>
