@@ -84,7 +84,7 @@ int main() {
 
 
 ```
-#### Refactored Version Using Stratergy Pattern 
+#### Refactored Version Using Stratergy Pattern (Object Oriented Paradigm)
 ```
 Refactored Version
 
@@ -186,6 +186,70 @@ int main() {
 
     return 0;
 }
+
+```
+#### Functional Programming Paradigm
+```
+#include <iostream>
+#include <unordered_map>
+#include <functional>
+using namespace std;
+
+// Enum for Payment Modes
+enum class PaymentMode {
+    PayPal,
+    GooglePay,
+    CreditCard
+};
+
+// --- Strategy Manager using std::function ---
+class StrategyManager {
+    unordered_map<PaymentMode, function<void(double)>> strategies;
+
+public:
+    void addStrategy(PaymentMode mode, function<void(double)> strategy) {
+        strategies[mode] = move(strategy);
+    }
+
+    void removeStrategy(PaymentMode mode) {
+        strategies.erase(mode);
+    }
+
+    function<void(double)> getStrategy(PaymentMode mode) const {
+        auto it = strategies.find(mode);
+        return it != strategies.end() ? it->second : nullptr;
+    }
+};
+
+// --- Checkout class delegates to functional strategies ---
+class Checkout {
+    const StrategyManager& strategyManager;
+
+public:
+    Checkout(const StrategyManager& manager) : strategyManager(manager) {}
+
+    void checkout(PaymentMode mode, double amount) const {
+        auto strategy = strategyManager.getStrategy(mode);
+        if (strategy) {
+            strategy(amount);
+        } else {
+            cout << "No strategy available for this payment mode!" << endl;
+        }
+    }
+};
+
+// --- Example usage ---
+int main() {
+    double amount = 150.75;
+    StrategyManager manager;
+
+    // Add strategies as lambdas
+    manager.addStrategy(PaymentMode::PayPal, [](double amt) {
+        cout << "Processing PayPal payment of $" << amt << endl;
+    });
+
+    manager.addStrategy(PaymentMode::GooglePay, [](double amt) {
+        cout << "Processing GooglePay payment of $"
 
 ```
 #### Python Implementation
