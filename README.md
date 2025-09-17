@@ -81,6 +81,106 @@ int main() {
 
     return 0;
 }
+
+Refactored Version
+#include <iostream>
+#include <memory>
+#include <unordered_map>
+using namespace std;
+
+// Enum for Payment Modes
+enum class PaymentMode {
+    PayPal,
+    GooglePay,
+    CreditCard
+};
+
+// --- Strategy Interface ---
+class IPaymentStrategy {
+public:
+    virtual void pay(double amount) = 0;
+    virtual ~IPaymentStrategy() = default;
+};
+
+// --- Concrete Strategies ---
+class PayPalStrategy : public IPaymentStrategy {
+public:
+    void pay(double amount) override {
+        cout << "Processing PayPal payment of $" << amount << endl;
+    }
+};
+
+class GooglePayStrategy : public IPaymentStrategy {
+public:
+    void pay(double amount) override {
+        cout << "Processing GooglePay payment of $" << amount << endl;
+    }
+};
+
+class CreditCardStrategy : public IPaymentStrategy {
+public:
+    void pay(double amount) override {
+        cout << "Processing Credit Card payment of $" << amount << endl;
+    }
+};
+
+// --- Strategy Manager (manages registration/removal of strategies) ---
+class StrategyManager {
+    unordered_map<PaymentMode, unique_ptr<IPaymentStrategy>> strategies;
+
+public:
+    void addStrategy(PaymentMode mode, unique_ptr<IPaymentStrategy> strategy) {
+        strategies[mode] = move(strategy);
+    }
+
+    void removeStrategy(PaymentMode mode) {
+        strategies.erase(mode);
+    }
+
+    IPaymentStrategy* getStrategy(PaymentMode mode) const {
+        auto it = strategies.find(mode);
+        return it != strategies.end() ? it->second.get() : nullptr;
+    }
+};
+
+// --- Checkout class (delegates to strategy manager) ---
+class Checkout {
+    const StrategyManager& strategyManager;
+
+public:
+    Checkout(const StrategyManager& manager) : strategyManager(manager) {}
+
+    void checkout(PaymentMode mode, double amount) const {
+        IPaymentStrategy* strategy = strategyManager.getStrategy(mode);
+        if (strategy) {
+            strategy->pay(amount);
+        } else {
+            cout << "No strategy available for this payment mode!" << endl;
+        }
+    }
+};
+
+// --- Example usage ---
+int main() {
+    double amount = 150.75;
+
+    StrategyManager manager;
+    manager.addStrategy(PaymentMode::PayPal, make_unique<PayPalStrategy>());
+    manager.addStrategy(PaymentMode::GooglePay, make_unique<GooglePayStrategy>());
+    manager.addStrategy(PaymentMode::CreditCard, make_unique<CreditCardStrategy>());
+
+    Checkout checkoutService(manager);
+
+    checkoutService.checkout(PaymentMode::PayPal, amount);
+    checkoutService.checkout(PaymentMode::GooglePay, amount);
+
+    // Remove GooglePay strategy
+    manager.removeStrategy(PaymentMode::GooglePay);
+    checkoutService.checkout(PaymentMode::GooglePay, amount);  // Will print error
+
+    return 0;
+}
+
 ```
 #### Python Implementation
 ```
