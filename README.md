@@ -81,6 +81,176 @@ int main() {
 
     return 0;
 }
+
+
+```
+#### Refactored Version Using Stratergy Pattern (Object Oriented Paradigm)
+```
+Refactored Version
+
+
+#include <iostream>
+#include <memory>
+#include <unordered_map>
+using namespace std;
+
+// Enum for Payment Modes
+enum class PaymentMode {
+    PayPal,
+    GooglePay,
+    CreditCard
+};
+
+// --- Strategy Interface ---
+class IPaymentStrategy {
+public:
+    virtual void pay(double amount) = 0;
+    virtual ~IPaymentStrategy() = default;
+};
+
+// --- Concrete Strategies ---
+class PayPalStrategy : public IPaymentStrategy {
+public:
+    void pay(double amount) override {
+        cout << "Processing PayPal payment of $" << amount << endl;
+    }
+};
+
+class GooglePayStrategy : public IPaymentStrategy {
+public:
+    void pay(double amount) override {
+        cout << "Processing GooglePay payment of $" << amount << endl;
+    }
+};
+
+class CreditCardStrategy : public IPaymentStrategy {
+public:
+    void pay(double amount) override {
+        cout << "Processing Credit Card payment of $" << amount << endl;
+    }
+};
+
+// --- Strategy Manager (manages registration/removal of strategies) ---
+class StrategyManager {
+    unordered_map<PaymentMode, unique_ptr<IPaymentStrategy>> strategies;
+
+public:
+    void addStrategy(PaymentMode mode, unique_ptr<IPaymentStrategy> strategy) {
+        strategies[mode] = move(strategy);
+    }
+
+    void removeStrategy(PaymentMode mode) {
+        strategies.erase(mode);
+    }
+
+    IPaymentStrategy* getStrategy(PaymentMode mode) const {
+        auto it = strategies.find(mode);
+        return it != strategies.end() ? it->second.get() : nullptr;
+    }
+};
+
+// --- Checkout class (delegates to strategy manager) ---
+class Checkout {
+    const StrategyManager& strategyManager;
+
+public:
+    Checkout(const StrategyManager& manager) : strategyManager(manager) {}
+
+    void checkout(PaymentMode mode, double amount) const {
+        IPaymentStrategy* strategy = strategyManager.getStrategy(mode);
+        if (strategy) {
+            strategy->pay(amount);
+        } else {
+            cout << "No strategy available for this payment mode!" << endl;
+        }
+    }
+};
+
+// --- Example usage ---
+int main() {
+    double amount = 150.75;
+
+    StrategyManager manager;
+    manager.addStrategy(PaymentMode::PayPal, make_unique<PayPalStrategy>());
+    manager.addStrategy(PaymentMode::GooglePay, make_unique<GooglePayStrategy>());
+    manager.addStrategy(PaymentMode::CreditCard, make_unique<CreditCardStrategy>());
+
+    Checkout checkoutService(manager);
+
+    checkoutService.checkout(PaymentMode::PayPal, amount);
+    checkoutService.checkout(PaymentMode::GooglePay, amount);
+
+    // Remove GooglePay strategy
+    manager.removeStrategy(PaymentMode::GooglePay);
+    checkoutService.checkout(PaymentMode::GooglePay, amount);  // Will print error
+
+    return 0;
+}
+
+```
+#### Functional Programming Paradigm
+```
+#include <iostream>
+#include <unordered_map>
+#include <functional>
+using namespace std;
+
+// Enum for Payment Modes
+enum class PaymentMode {
+    PayPal,
+    GooglePay,
+    CreditCard
+};
+
+// --- Strategy Manager using std::function ---
+class StrategyManager {
+    unordered_map<PaymentMode, function<void(double)>> strategies;
+
+public:
+    void addStrategy(PaymentMode mode, function<void(double)> strategy) {
+        strategies[mode] = move(strategy);
+    }
+
+    void removeStrategy(PaymentMode mode) {
+        strategies.erase(mode);
+    }
+
+    function<void(double)> getStrategy(PaymentMode mode) const {
+        auto it = strategies.find(mode);
+        return it != strategies.end() ? it->second : nullptr;
+    }
+};
+
+// --- Checkout class delegates to functional strategies ---
+class Checkout {
+    const StrategyManager& strategyManager;
+
+public:
+    Checkout(const StrategyManager& manager) : strategyManager(manager) {}
+
+    void checkout(PaymentMode mode, double amount) const {
+        auto strategy = strategyManager.getStrategy(mode);
+        if (strategy) {
+            strategy(amount);
+        } else {
+            cout << "No strategy available for this payment mode!" << endl;
+        }
+    }
+};
+
+// --- Example usage ---
+int main() {
+    double amount = 150.75;
+    StrategyManager manager;
+
+    // Add strategies as lambdas
+    manager.addStrategy(PaymentMode::PayPal, [](double amt) {
+        cout << "Processing PayPal payment of $" << amt << endl;
+    });
+
+    manager.addStrategy(PaymentMode::GooglePay, [](double amt) {
+        cout << "Processing GooglePay payment of $"
+
 ```
 #### Python Implementation
 ```
@@ -119,6 +289,47 @@ if __name__ == "__main__":
     checkout(PaymentMode.GOOGLEPAY, amount)
     checkout(PaymentMode.CREDITCARD, amount)
     checkout(PaymentMode.UNKNOWN, amount)
+
+Payment Logic Separation
+lass PaymentMode(Enum):
+    PAYPAL = 1
+    GOOGLEPAY = 2
+    CREDITCARD = 3
+    UNKNOWN = 99
+
+
+# Payment Handlers as functions
+def handle_paypal(amount: float):
+    print(f"Processing PayPal payment of ${amount:.2f}")
+    # Add PayPal-specific logic here
+
+
+def handle_googlepay(amount: float):
+    print(f"Processing GooglePay payment of ${amount:.2f}")
+    # Add GooglePay-specific logic here
+
+
+def handle_creditcard(amount: float):
+    print(f"Processing Credit Card payment of ${amount:.2f}")
+    # Add Credit Card-specific logic here
+
+
+def handle_unknown(amount: float):
+    print("Invalid payment mode selected!")
+
+def checkout(mode: PaymentMode, amount: float):
+    match mode:
+        case PaymentMode.PAYPAL:
+             handle_paypal(amount);
+           
+        case PaymentMode.GOOGLEPAY:
+           handle_googlepay(amount);
+
+        case PaymentMode.CREDITCARD:
+           handle_creditcard(amount);
+        case _:
+           handle_unknown
+
 ```
 #### C# Implentation
 ```
