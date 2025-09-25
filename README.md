@@ -289,6 +289,47 @@ if __name__ == "__main__":
     checkout(PaymentMode.GOOGLEPAY, amount)
     checkout(PaymentMode.CREDITCARD, amount)
     checkout(PaymentMode.UNKNOWN, amount)
+
+Payment Logic Separation
+lass PaymentMode(Enum):
+    PAYPAL = 1
+    GOOGLEPAY = 2
+    CREDITCARD = 3
+    UNKNOWN = 99
+
+
+# Payment Handlers as functions
+def handle_paypal(amount: float):
+    print(f"Processing PayPal payment of ${amount:.2f}")
+    # Add PayPal-specific logic here
+
+
+def handle_googlepay(amount: float):
+    print(f"Processing GooglePay payment of ${amount:.2f}")
+    # Add GooglePay-specific logic here
+
+
+def handle_creditcard(amount: float):
+    print(f"Processing Credit Card payment of ${amount:.2f}")
+    # Add Credit Card-specific logic here
+
+
+def handle_unknown(amount: float):
+    print("Invalid payment mode selected!")
+
+def checkout(mode: PaymentMode, amount: float):
+    match mode:
+        case PaymentMode.PAYPAL:
+             handle_paypal(amount);
+           
+        case PaymentMode.GOOGLEPAY:
+           handle_googlepay(amount);
+
+        case PaymentMode.CREDITCARD:
+           handle_creditcard(amount);
+        case _:
+           handle_unknown
+
 ```
 #### C# Implentation
 ```
